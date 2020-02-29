@@ -1,0 +1,43 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pihole-pv
+  namespace: www
+  labels:
+    category: pihole
+spec:
+#  storageClassName: generic
+  capacity:
+    storage: 5Gi
+#  flexVolume:
+#    driver: juliohm/cifs
+#    options:
+#      opts: vers=2.1,uid=1000
+#      server: 192.168.1.29
+#      share: /NAS/pihole
+#    secretRef:
+#      name: cifs-secret
+  nfs:
+    path: /mnt/NFS/pihole
+    server: 192.168.1.29
+  accessModes:
+    - ReadWriteMany
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pihole-pvc
+  namespace: www
+spec:
+#  storageClassName: generic
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  selector:
+    matchLabels:
+      category: pihole
+---
+

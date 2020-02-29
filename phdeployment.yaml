@@ -1,0 +1,80 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: pi-hole
+  namespace: www
+  labels:
+    app: pi-hole
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pi-hole
+    spec:
+            # hostNetwork: true
+      hostAliases:
+      - ip: 127.0.0.1
+        hostnames:
+        - pi.hole
+      containers:
+      - name: pi-hole
+        image: pihole/pihole:4.3.1-4_armhf
+        imagePullPolicy: IfNotPresent
+        stdin: true
+        tty: true
+        resources:
+          limits:
+            memory: 512Mi
+        env:
+        - name: 'ServerIP'
+          value: '0.0.0.0'
+        - name: 'DNS1'
+          value: '8.8.8.8'
+        - name: 'DNS2'
+          value: '127.0.0.1'
+        - name: 'WEBPASSWORD'
+          value: 'tHPi10bs9fd.'
+        ports:
+        - name: webui
+          containerPort: 80 
+        - name: dns1
+          hostPort: 53
+          protocol: TCP 
+          containerPort: 53
+        - containerPort: 53
+          name: dns2
+          hostPort: 53
+          protocol: UDP
+
+          # - name: {{ template "fullname" . }}-dns2
+          #   containerPort: 53
+        volumeMounts:
+            - mountPath: "/etc/pihole"
+              name: pihole-pvc
+              subPath: "pihole"
+            - mountPath: "/etc/dnsmasq.d"
+              name: pihole-pvc
+              subPath: "dnsmasq"
+            - mountPath: "/etc/dnsmasq.d/05-custom.conf"
+              name: pihole-custom-config
+              subPath: 05-custom.conf
+            - mountPath: "/etc/pihole/whitelist.txt"
+              name: pihole-custom-config-list
+              subPath: whitelist.txt
+            - mountPath: "/etc/pihole/adlists.list"
+              name: pihole-custom-config-list
+              subPath: adlists.list
+            - mountPath: "/etc/pihole/local.list"
+              name: pihole-custom-config-list
+              subPath: local.list
+      volumes:
+        - name: pihole-custom-config
+          configMap:
+            name: pihole-custom-config
+        - name: pihole-custom-config-list
+          configMap:
+            name: pihole-custom-config-list
+        - name: pihole-pvc
+          persistentVolumeClaim:
+            claimName: pihole-pvc

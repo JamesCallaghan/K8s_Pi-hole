@@ -1,0 +1,28 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: pi-hole
+  namespace: www
+  annotations:
+    kubernetes.io/ingress.class: traefik
+#    traefik.frontend.rule.type: PathPrefixStrip
+  labels:
+    app: pi-hole
+spec:
+  tls:
+    - secretName: traefik-cert
+  rules:
+    - host: pihole.local
+      http:
+        paths:
+          - path: /admin
+            backend:
+              serviceName: pi-hole
+              servicePort: 80
+#    - host: dns.cminion.cf
+#      http:
+#        paths:
+#          - path: /
+#            backend:
+#              serviceName: pi-hole
+#              servicePort: 53
